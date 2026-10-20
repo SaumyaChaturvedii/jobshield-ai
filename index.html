@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f6f8">
+  <title>JobShield AI — Job Scam Detector</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Main Application Wrapper -->
+  <div class="app-container">
+    
+    <!-- Clean Minimal Header -->
+    <header class="top-navbar glass-panel">
+      <a class="brand" href="#" aria-label="JobShield AI Home">
+        <div class="brand-mark">
+          <img src="image/35462917-3c9e-4b1f-b9f4-ab85289a80ef.png" alt="JobShield Logo">
+        </div>
+        <div class="brand-copy">
+          <span class="brand-title">JobShield<span class="brand-accent">AI</span></span>
+        </div>
+      </a>
+
+      <div class="navbar-right">
+        <div class="status-pill">
+          <span class="live-pulse"></span>
+          <span class="status-text">Checking service…</span>
+        </div>
+
+        <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Switch theme" aria-pressed="false" title="Toggle Dark/Light Mode">
+          <span class="theme-icon" aria-hidden="true">☾</span>
+        </button>
+
+        <div class="profile-chip" title="Account Settings">
+          <div class="avatar">S</div>
+          <span class="profile-name">Saumya</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Container (Focused & Clean) -->
+    <main class="main-content">
+      
+      <!-- Clean Welcome Header -->
+      <section class="welcome-header">
+        <h1 class="welcome-title">Check a job before you apply</h1>
+        <p class="welcome-subtitle">Scan a document, recruiter message, or public job listing for common scam signals.</p>
+      </section>
+
+      <!-- The Core Scanner Card -->
+      <section class="scanner-card glass-panel" id="scan">
+        
+        <!-- Apple-Style Native Segmented Control -->
+        <div class="scan-tabs" role="tablist" aria-label="Scan Type">
+          <button class="scan-tab active" role="tab" aria-selected="true" data-mode="file" data-title="Drop a job document or screenshot" data-types="PDF, JPG, PNG · up to 10 MB">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <span>Upload file</span>
+          </button>
+          <button class="scan-tab" role="tab" aria-selected="false" data-mode="link" data-title="Paste job listing link" data-types="Not connected yet">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            <span>Paste link</span>
+          </button>
+          <button class="scan-tab" role="tab" aria-selected="false" data-mode="email" data-title="Paste recruiter email text" data-types="Not connected yet">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+            <span>Paste email</span>
+          </button>
+          <button class="scan-tab" role="tab" aria-selected="false" data-mode="offer" data-title="Upload offer letter or contract" data-types="PDF, JPG, PNG · up to 10 MB">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <span>Offer letter</span>
+          </button>
+        </div>
+
+        <!-- Mode 1 & 4: Upload Dropzone -->
+        <div class="scan-view" id="view-file">
+          <label class="upload-box" for="job-file" tabindex="0" role="button" aria-controls="job-file">
+            <input id="job-file" type="file" accept=".jpg,.jpeg,.png,.pdf" hidden>
+            <div class="upload-icon-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </div>
+            <div class="upload-details">
+              <h3 id="upload-title" class="upload-headline">Drop a job document or screenshot</h3>
+              <p id="upload-copy" class="upload-subtext">Drop it here, or browse your device.</p>
+            </div>
+            <div class="upload-footer-tags">
+              <span class="upload-tag" id="upload-formats">PDF, JPG, PNG · up to 10 MB</span>
+              <span class="upload-btn-pill">Browse</span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Mode 2: Paste Link View (Clean & Intuitive) -->
+        <div class="scan-view is-hidden" id="view-link">
+          <div class="input-panel">
+            <div class="input-row">
+              <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+              <input type="url" id="link-input" class="text-input" placeholder="https://www.linkedin.com/jobs/view/..." autocomplete="url" maxlength="2048" aria-label="Job listing URL">
+              <button type="button" class="action-btn" id="btn-scan-link">Scan link</button>
+            </div>
+            <span class="input-hint">Scans publicly accessible pages. Pages behind a login may not be available.</span>
+          </div>
+        </div>
+
+        <!-- Mode 3: Paste Email View -->
+        <div class="scan-view is-hidden" id="view-email">
+          <div class="input-panel">
+            <textarea id="email-input" class="textarea-input" rows="4" maxlength="20000" placeholder="Paste the recruiter email, interview invitation, or message here..." aria-label="Recruiter message"></textarea>
+            <div class="textarea-footer">
+              <span class="input-hint">Avoid pasting passwords, OTPs, or bank details.</span>
+              <button type="button" class="action-btn" id="btn-scan-email">Analyze email</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="scan-loader" id="scan-loader" role="status" aria-live="polite" aria-atomic="true" hidden>
+          <div class="loader-mark" aria-hidden="true">
+            <span class="loading-spinner"></span>
+            <svg class="loader-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 6v5c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6z"></path><path d="m9.5 12 1.8 1.8 3.5-3.8"></path></svg>
+          </div>
+          <div class="loader-content">
+            <div class="loader-heading">
+              <div class="loader-copy">
+                <span class="loader-kicker">SECURE SCAN</span>
+                <p id="scan-status">Analyzing document…</p>
+              </div>
+              <span class="loader-state"><span class="loader-state-dot" aria-hidden="true"></span>Running</span>
+            </div>
+            <progress class="scan-progress" id="scan-progress" max="100" aria-label="Scan progress"></progress>
+          </div>
+        </div>
+
+        <div class="scan-feedback" id="scan-feedback" role="alert" aria-live="assertive" hidden></div>
+
+      </section>
+
+      <p class="scan-privacy-note">Submitted documents and messages are sent to Google Gemini for analysis. Avoid sharing passwords, OTPs, or financial account details.</p>
+
+      <!-- Latest Scan Summary -->
+      <section class="summary-section glass-panel" id="analysis">
+        <div class="summary-header">
+          <div class="summary-title-wrap">
+            <h2 class="summary-title">Latest scan result</h2>
+            <span class="summary-subtitle" id="summary-filename">No scan yet</span>
+          </div>
+        </div>
+
+        <p class="summary-empty-state" id="summary-empty">Run a scan to see risk findings and practical next steps.</p>
+        <p class="input-hint">AI results are risk signals, not a definitive fraud determination. Verify offers through the employer’s official website.</p>
+        <div class="result-hero safe" id="result-hero" hidden>
+          <div class="risk-gauge" id="risk-gauge" role="img" aria-label="Risk score">
+            <div class="risk-gauge-center">
+              <span class="gauge-label">RISK SCORE</span>
+              <span class="gauge-reading"><strong id="risk-score">0</strong><small>/100</small></span>
+            </div>
+          </div>
+          <div class="result-copy">
+            <div class="result-topline">
+              <span class="result-complete"><span class="result-complete-dot" aria-hidden="true"></span>ANALYSIS COMPLETE</span>
+              <span class="score-badge neutral" id="risk-badge">Awaiting result</span>
+            </div>
+            <h3 class="result-title" id="result-title">Scan complete</h3>
+            <p class="result-description">Your document has been reviewed. See the key findings and recommended next step below.</p>
+          </div>
+        </div>
+        <div class="findings-heading" id="findings-heading" hidden>
+          <h3>Key findings</h3>
+          <span>Signals identified in this document</span>
+        </div>
+        <div class="summary-grid" id="summary-grid" hidden></div>
+        <div class="ai-recommendation" id="recommendation-panel" hidden>
+          <div class="recommendation-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3Z"></path><path d="m19 14 .9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14Z"></path></svg>
+          </div>
+          <div class="recommendation-copy">
+            <div class="recommendation-heading">
+              <strong>AI recommendation</strong>
+              <span class="recommendation-tag">NEXT STEP</span>
+            </div>
+            <span id="ai-recommendation">Your tailored next step will appear here after analysis.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Scans are available on demand to keep the main workflow compact. -->
+      <details class="recent-section" id="recent-scans">
+        <summary class="recent-header">
+          <span class="recent-heading">
+            <span class="section-title" role="heading" aria-level="2">Recent scans</span>
+            <span class="recent-count" id="recent-count">0 scans</span>
+          </span>
+          <span class="recent-chevron" aria-hidden="true">⌄</span>
+        </summary>
+        <div class="recent-content">
+          <p class="recent-empty-state" id="recent-empty">Completed scans will appear here during this session.</p>
+          <div class="recent-list" id="recent-list" aria-live="polite"></div>
+        </div>
+      </details>
+
+    </main>
+
+    <!-- Floating Glass Bottom Navigation Dock -->
+    
+
+  </div>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
