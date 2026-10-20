@@ -29,11 +29,11 @@ GitHub Pages serves only static files and cannot run FastAPI. Create a separate 
 - Runtime: **Docker**
 - Branch: `main` after merging the deployment repair pull request
 - Root directory: repository root (leave the field blank)
-- Dockerfile path: `Backend/Dockerfile`
+- Dockerfile path: `Dockerfile` (repository root)
 - Environment variable: `GEMINI_API_KEY` with the value entered privately in Render
 - Health check path: `/health`
 
-The Docker image installs Tesseract and the Python requirements. Its start command binds Uvicorn to `0.0.0.0` and Render's `PORT`. After deployment, verify that the service's `/health` endpoint returns `{"status":"ok"}`. This confirms the process is available; it does not test Gemini credentials or perform a scan.
+The root Dockerfile installs Tesseract and the Python requirements. Its start command binds Uvicorn to `0.0.0.0` and Render's `PORT`. After deployment, `/health` reports `status`, whether a Gemini API key is configured, and whether the Tesseract executable is available. These checks do not validate Gemini API access or perform a scan; only a successful scan verifies that end to end.
 
 If deploying with Render's native Python runtime instead of Docker, use:
 
