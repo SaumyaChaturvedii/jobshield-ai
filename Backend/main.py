@@ -213,6 +213,10 @@ def extract_image_text(contents: bytes) -> str:
     )[:MAX_ANALYSIS_CHARS]
 
 
+def is_ocr_available() -> bool:
+    return shutil.which(pytesseract.pytesseract.tesseract_cmd) is not None
+
+
 def validate_public_url(value: str) -> str:
     if any(character.isspace() for character in value):
         raise HTTPException(status_code=422, detail="Enter a valid public HTTP or HTTPS URL.")
@@ -245,7 +249,12 @@ def validate_public_url(value: str) -> str:
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or ""
+    return {
+        "status": "ok",
+        "gemini_configured": bool(api_key.strip()),
+        "ocr_available": is_ocr_available(),
+    }
 
 
 @app.post("/scan")
@@ -264,9 +273,7 @@ async def scan(file: UploadFile = File(...)):
     elif content_type in {"image/png", "image/jpeg", "image/jpg"}:
         file_type = "image"
         extractor = extract_image_text
-        tesseract = pytesseract.pytesseract.tesseract_cmd
-        ocr_available = os.path.isfile(tesseract) if os.path.dirname(tesseract) else shutil.which(tesseract) is not None
-        if not ocr_available:
+        if not is_ocr_available():
             raise HTTPException(
                 status_code=503,
                 detail="Image scanning is unavailable because OCR is not installed on the server.",
