@@ -37,33 +37,78 @@ document.addEventListener('DOMContentLoaded', () => {
   const servicePill = document.querySelector('.status-pill');
   const serviceText = document.querySelector('.status-text');
   const maxFileSize = 10 * 1024 * 1024;
-  const isLocalLiveServer = ['localhost', '127.0.0.1'].includes(window.location.hostname)
-    && window.location.port === '5500';
-  const defaultApiOrigin = isLocalLiveServer ? 'http://127.0.0.1:8000' : window.location.origin;
-  const apiOrigin = String(window.JOBSHIELD_API_BASE_URL || defaultApiOrigin).replace(/\/$/, '');
-  const apiUrl = (path) => `${apiOrigin}${path}`;
+  const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+  const configuredApiOrigin = String(window.JOBSHIELD_API_BASE_URL || '').trim().replace(/\/+$/, '');
+  const missingApiMessage = 'Scanning is not configured for this site. Set JOBSHIELD_API_BASE_URL in config.js to the deployed FastAPI origin, then retry.';
+  let apiConfigurationError = '';
+  let validatedConfiguredApiOrigin = '';
+  if (configuredApiOrigin) {
+    try {
+      const configuredUrl = new URL(configuredApiOrigin);
+      const isPlaceholder = /(?:your|placeholder|replace|example\.com|render-url)/i.test(configuredUrl.hostname);
+      const isValidOrigin = ['https:', 'http:'].includes(configuredUrl.protocol)
+        && !configuredUrl.username
+        && !configuredUrl.password
+        && configuredUrl.pathname === '/'
+        && !configuredUrl.search
+        && !configuredUrl.hash
+        && (isLocalHost || configuredUrl.protocol === 'https:')
+        && configuredUrl.hostname !== 'saumyachaturvedii.github.io'
+        && !isPlaceholder;
+      if (isValidOrigin) {
+        validatedConfiguredApiOrigin = configuredUrl.origin;
+      } else {
+        apiConfigurationError = 'The backend URL in config.js must be a real HTTPS API origin, not a placeholder or a GitHub Pages URL.';
+      }
+    } catch (error) {
+      apiConfigurationError = 'The backend URL in config.js is invalid. Enter the HTTPS origin of the deployed FastAPI service.';
+    }
+  }
+  const localApiOrigin = isLocalHost
+    ? (window.location.port === '8000' ? window.location.origin : 'http://127.0.0.1:8000')
+    : '';
+  const apiOrigin = validatedConfiguredApiOrigin || (!configuredApiOrigin ? localApiOrigin : '');
+  const apiUrl = (path) => {
+    if (!apiOrigin) {
+      throw new Error(apiConfigurationError || missingApiMessage);
+    }
+    return `${apiOrigin}${path}`;
+  };
   let scanInProgress = false;
+
+  function setServiceStatus(message, stateClass = '') {
+    if (!servicePill || !serviceText) return;
+    serviceText.textContent = message;
+    servicePill.classList.remove('is-offline', 'is-warning');
+    if (stateClass) servicePill.classList.add(stateClass);
+  }
 
   async function refreshServiceStatus() {
     if (!servicePill || !serviceText) return;
+    if (!apiOrigin) {
+      setServiceStatus(apiConfigurationError ? 'Backend URL invalid' : 'Backend URL required', 'is-warning');
+      return;
+    }
     try {
       const response = await fetch(apiUrl('/health'), { cache: 'no-store' });
-      if (!response.ok) throw new Error('Health check failed');
-      const health = await response.json();
-      servicePill.classList.remove('is-offline', 'is-warning');
-      if (!health.gemini_configured) {
-        serviceText.textContent = 'AI setup required';
-        servicePill.classList.add('is-warning');
-      } else if (!health.ocr_available) {
-        serviceText.textContent = 'Image OCR unavailable';
-        servicePill.classList.add('is-warning');
+      if (!response.ok) {
+        setServiceStatus(`Backend error (${response.status})`, 'is-warning');
+        return;
+      }
+      let health;
+      try {
+        health = await response.json();
+      } catch (error) {
+        setServiceStatus(`Invalid backend response (${response.status})`, 'is-warning');
+        return;
+      }
+      if (health?.status !== 'ok') {
+        setServiceStatus(`Invalid backend response (${response.status})`, 'is-warning');
       } else {
-        serviceText.textContent = 'Backend online';
+        setServiceStatus('Backend online');
       }
     } catch (error) {
-      serviceText.textContent = 'Service offline';
-      servicePill.classList.remove('is-warning');
-      servicePill.classList.add('is-offline');
+      setServiceStatus('Network/CORS issue', 'is-offline');
     }
   }
 
@@ -79,6 +124,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!scanFeedback) return;
     scanFeedback.textContent = '';
     scanFeedback.hidden = true;
+  }
+
+  function clearCurrentResult() {
+    if (mainContent) mainContent.classList.remove('has-results');
+    if (summaryFilename) summaryFilename.textContent = 'No scan yet';
+    if (resultHero) resultHero.hidden = true;
+    if (findingsHeading) findingsHeading.hidden = true;
+    if (summaryGrid) {
+      summaryGrid.replaceChildren();
+      summaryGrid.classList.remove('has-three');
+      summaryGrid.hidden = true;
+    }
+    if (recommendationPanel) recommendationPanel.hidden = true;
+    if (summaryEmpty) summaryEmpty.hidden = false;
   }
 
   function setBusy(isBusy) {
@@ -110,16 +169,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function detailFromBody(body) {
+    if (typeof body?.detail === 'string') return body.detail;
+    if (Array.isArray(body?.detail)) {
+      const firstMessage = body.detail.find((item) => typeof item?.msg === 'string')?.msg;
+      if (firstMessage) return firstMessage;
+    }
+    return '';
+  }
+
+  function httpErrorMessage(status, detail = '') {
+    if (detail) return detail;
+    if (status === 405) {
+      return 'This host does not support scans. GitHub Pages only serves static files; set the deployed FastAPI URL in config.js.';
+    }
+    if ([502, 503, 504].includes(status)) {
+      return `The backend or its AI service is temporarily unavailable (HTTP ${status}). Please retry shortly.`;
+    }
+    return `The backend returned HTTP ${status}. Please check the service and retry.`;
+  }
+
   function errorFromResponse(xhr) {
     try {
       const body = JSON.parse(xhr.responseText);
-      if (typeof body?.detail === 'string') return body.detail;
-      if (Array.isArray(body?.detail) && body.detail[0]?.msg) return body.detail[0].msg;
+      return httpErrorMessage(xhr.status, detailFromBody(body));
     } catch (error) {
-      // A non-JSON response gets the generic status message below.
+      return httpErrorMessage(xhr.status);
     }
-    return `The scan could not be completed (server returned ${xhr.status}). Please try again.`;
   }
+
+  const networkErrorMessage = 'No response reached the browser. Check the backend URL, network, and CORS allowlist, then retry.';
 
   function riskTone(level) {
     const normalized = String(level || '').toUpperCase();
@@ -277,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       xhr.addEventListener('error', () => {
-        reject(new Error('Scan service unavailable. Make sure FastAPI is running, then retry.'));
+        reject(new Error(networkErrorMessage));
       });
       xhr.addEventListener('timeout', () => {
         reject(new Error('The scan is taking longer than expected. Please try again in a moment.'));
@@ -302,15 +381,15 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
-      let data;
+      let data = null;
+      const responseText = await response.text();
       try {
-        data = await response.json();
+        data = responseText ? JSON.parse(responseText) : null;
       } catch (error) {
-        throw new Error(`The scan service returned an unreadable response (${response.status}). Please try again.`);
+        if (response.ok) throw new Error(`The backend returned an unreadable response (HTTP ${response.status}). Please retry.`);
       }
       if (!response.ok) {
-        const message = typeof data?.detail === 'string' ? data.detail : `The scan could not be completed (server returned ${response.status}). Please try again.`;
-        throw new Error(message);
+        throw new Error(httpErrorMessage(response.status, detailFromBody(data)));
       }
       if (!data?.analysis) throw new Error('The scan completed without analysis results. Please try again.');
       if (scanStatus) scanStatus.textContent = 'Analysis complete. Displaying your findings…';
@@ -322,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error('The scan took too long. Please try again in a moment.');
       }
       if (error instanceof TypeError) {
-        throw new Error('Scan service unavailable. Check your connection and retry.');
+        throw new Error(networkErrorMessage);
       }
       throw error;
     } finally {
@@ -333,6 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function handleTextScan(endpoint, payload) {
     if (scanInProgress) return;
     clearFeedback();
+    clearCurrentResult();
     resetProgress();
     if (scanStatus) scanStatus.textContent = 'Analyzing content…';
     setBusy(true);
@@ -359,6 +439,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    if (!['pdf', 'png', 'jpg', 'jpeg'].includes(fileExtension)) {
+      showFeedback('Unsupported file type. Choose a PDF, PNG, or JPEG file.');
+      if (fileInput) fileInput.value = '';
+      return;
+    }
+
+    clearCurrentResult();
     if (uploadTitle) uploadTitle.textContent = file.name;
     if (uploadCopy) uploadCopy.textContent = `File ready for analysis (${(file.size / 1024).toFixed(1)} KB).`;
     if (uploadFormats) uploadFormats.textContent = 'File loaded · Click to replace';
@@ -531,3 +619,4 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(nextTheme, true);
   });
 });
+
