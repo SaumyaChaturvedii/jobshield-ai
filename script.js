@@ -76,9 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   let scanInProgress = false;
 
-  function setServiceStatus(message, stateClass = '') {
+  function setServiceStatus(message, stateClass = '', details = '') {
     if (!servicePill || !serviceText) return;
     serviceText.textContent = message;
+    servicePill.title = details;
     servicePill.classList.remove('is-offline', 'is-warning');
     if (stateClass) servicePill.classList.add(stateClass);
   }
@@ -92,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const response = await fetch(apiUrl('/health'), { cache: 'no-store' });
       if (!response.ok) {
-        setServiceStatus(`Backend error (${response.status})`, 'is-warning');
+        setServiceStatus(`Backend unavailable (${response.status})`, 'is-offline');
         return;
       }
       let health;
@@ -102,13 +103,37 @@ document.addEventListener('DOMContentLoaded', () => {
         setServiceStatus(`Invalid backend response (${response.status})`, 'is-warning');
         return;
       }
-      if (health?.status !== 'ok') {
+      if (health?.status !== 'ok'
+        || typeof health.gemini_configured !== 'boolean'
+        || typeof health.ocr_available !== 'boolean') {
         setServiceStatus(`Invalid backend response (${response.status})`, 'is-warning');
+      } else if (!health.gemini_configured && !health.ocr_available) {
+        setServiceStatus(
+          'Backend online · Gemini/OCR missing',
+          'is-warning',
+          'The backend responds, but no Gemini API key is configured and the Tesseract OCR executable is unavailable.',
+        );
+      } else if (!health.gemini_configured) {
+        setServiceStatus(
+          'Backend online · Gemini missing',
+          'is-warning',
+          'The backend responds, but no Gemini API key is configured. A configured key does not confirm Gemini API access; only a successful scan can verify that.',
+        );
+      } else if (!health.ocr_available) {
+        setServiceStatus(
+          'Backend online · OCR unavailable',
+          'is-warning',
+          'The backend responds and a Gemini API key is configured, but the Tesseract OCR executable is unavailable. Gemini API access is verified only by a successful scan.',
+        );
       } else {
-        setServiceStatus('Backend online');
+        setServiceStatus(
+          'Backend online · Gemini configured · OCR ready',
+          '',
+          'The backend responds, a Gemini API key is configured, and Tesseract is available. This health check does not test Gemini API access; a successful scan does.',
+        );
       }
     } catch (error) {
-      setServiceStatus('Network/CORS issue', 'is-offline');
+      setServiceStatus('Backend unavailable', 'is-offline', 'The health endpoint could not be reached. Check the backend URL, service state, network, and CORS settings.');
     }
   }
 
