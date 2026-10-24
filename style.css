@@ -1015,3 +1015,23 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .summary-item:hover, .action-btn:hover, .upload-box:hover { transform: none; }
 }
+
+
+/* Keep scan choices legible in the narrower completed-result sidebar. */
+.main-content.has-results .scan-tabs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.main-content.has-results .scan-tab {
+  justify-content: center;
+  min-height: 42px;
+}
+@media (max-width: 980px) {
+  .main-content.has-results .scan-tabs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .main-content.has-results .scan-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
