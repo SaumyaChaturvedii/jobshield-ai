@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function clearCurrentResult() {
     if (mainContent) mainContent.classList.remove('has-results');
+    delete document.documentElement.dataset.resultTheme;
     if (summaryFilename) summaryFilename.textContent = 'No scan yet';
     if (resultHero) resultHero.hidden = true;
     if (findingsHeading) findingsHeading.hidden = true;
@@ -234,6 +235,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return 'neutral';
   }
 
+  function applyResultTheme(tone) {
+    const root = document.documentElement;
+    root.classList.add('theme-transitioning');
+    root.dataset.resultTheme = tone;
+    window.setTimeout(() => root.classList.remove('theme-transitioning'), 350);
+  }
+
   function renderSummary(data, file) {
     const analysis = data.analysis;
     const filename = data.filename || file?.name || 'Scan result';
@@ -242,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const score = isJobRelated ? Number(analysis.risk_score) : 0;
     const level = isJobRelated ? reportedLevel : 'NOT_APPLICABLE';
     const tone = riskTone(level);
+    applyResultTheme(tone);
     const reasons = Array.isArray(analysis.reasons) ? analysis.reasons : [];
 
     if (!Number.isFinite(score) || !analysis.recommendation) {
