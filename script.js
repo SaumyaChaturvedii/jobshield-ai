@@ -161,6 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (summaryGrid) {
       summaryGrid.replaceChildren();
       summaryGrid.classList.remove('has-three');
+      summaryGrid.classList.remove('has-four');
       summaryGrid.hidden = true;
     }
     if (recommendationPanel) recommendationPanel.hidden = true;
@@ -319,6 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ? reasons
         : [isJobRelated ? 'No specific findings were included in this analysis.' : 'No job-related content was identified.'];
       summaryGrid.classList.toggle('has-three', visibleReasons.length === 3);
+      summaryGrid.classList.toggle('has-four', visibleReasons.length === 4);
       visibleReasons.forEach((reason, index) => {
         const card = document.createElement('article');
         card.className = 'summary-item';
