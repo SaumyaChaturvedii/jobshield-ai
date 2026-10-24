@@ -211,9 +211,13 @@ MATERIAL:
     if not analysis.is_job_related or is_academic_document:
         # Out-of-scope files must never be shown as low-risk job offers.
         scope_reason = (
-            "This appears to be an academic or educational document, not a job listing, recruiter message, application, or employment offer."
+            "This looks like an academic report, not a job listing or offer."
             if is_academic_document
-            else "No job listing, recruiting message, application, or employment offer was identified in this material."
+            else (
+                analysis.reasons[0]
+                if analysis.reasons
+                else "No job or recruiting content was identified in this material."
+            )
         )
         return ScamAnalysis(
             is_job_related=False,
@@ -221,8 +225,7 @@ MATERIAL:
             risk_score=0,
             reasons=[scope_reason],
             recommendation=(
-                "No job-scam risk score applies to this material. Submit a job listing, "
-                "recruiter message, application, or offer letter to screen recruitment risks."
+                "Upload a job listing, recruiter message, or offer letter to check for scam signals."
             ),
         ).model_dump()
     return analysis.model_dump()
