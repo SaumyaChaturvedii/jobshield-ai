@@ -66,6 +66,31 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def apply_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+
+    if request.url.path in {"/", "/index.html"}:
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; base-uri 'self'; object-src 'none'; "
+            "frame-ancestors 'none'; form-action 'self'; frame-src 'none'; "
+            "img-src 'self' data:; font-src 'self' data:; script-src 'self'; "
+            "style-src 'self' 'unsafe-inline'; connect-src 'self' "
+            "https://jobshield-ai-ysp4.onrender.com http://127.0.0.1:8000 "
+            "http://localhost:8000"
+        )
+
+    if request.method == "POST" and request.url.path in {"/scan", "/analyze", "/scan-link"}:
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Pragma"] = "no-cache"
+
+    return response
+
+
 configured_tesseract = os.getenv("TESSERACT_CMD")
 if configured_tesseract:
     pytesseract.pytesseract.tesseract_cmd = configured_tesseract
