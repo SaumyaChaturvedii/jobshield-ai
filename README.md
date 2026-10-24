@@ -105,6 +105,21 @@ The `/health` response reports whether the API process is available, a Gemini ke
 | `POST` | `/analyze` | Analyze pasted recruiter-message text |
 | `POST` | `/scan-link` | Review a public job-listing URL |
 
-## Privacy
+## Security and privacy
 
-Uploaded files and pasted messages are sent to the configured backend and Google Gemini for analysis. Do not submit passwords, one-time passcodes, government ID numbers, or real bank/payment details. Use fictional data when testing.
+### How scan data is handled
+
+Files and pasted messages are sent to the JobShield API and Google Gemini for analysis. This repository has no database-backed storage for scan contents, but the API and AI provider do receive the submitted material. Their handling and retention are governed by their respective policies. Do not submit passwords, one-time passcodes, government ID numbers, or real bank/payment details; use fictional content for testing.
+
+### Protections in the app
+
+- The Gemini API key stays in the backend environment and is never included in frontend code.
+- CORS allows the published frontend and local development origins without credentialed requests.
+- The API limits upload sizes, PDF pages, image dimensions, and text length, and applies timeouts to OCR and AI calls.
+- The API rejects local/private job-link targets.
+- The frontend uses a Content Security Policy and a strict referrer policy. The API adds security response headers, disables caching for scan responses, and sets anti-framing and permissions policies.
+- Scan results are risk signals only; verify offers independently through the employer's official channels.
+
+### Deployment limits
+
+The scanner API is public and does not currently require user authentication or enforce an application-level rate limit. CORS helps control browser access but is not authentication and does not block direct API clients. For broader production use, configure Gemini usage limits and add managed rate limiting or abuse controls at the hosting or API-gateway layer. No website can promise protection from every threat.
