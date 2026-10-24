@@ -207,18 +207,19 @@ MATERIAL:
             detail="The analysis service returned an unreadable result. Please try again.",
         )
     analysis = response.parsed
-    if (
-        not analysis.is_job_related
-        or is_academic_non_job_document(content, source)
-    ):
+    is_academic_document = is_academic_non_job_document(content, source)
+    if not analysis.is_job_related or is_academic_document:
         # Out-of-scope files must never be shown as low-risk job offers.
+        scope_reason = (
+            "This appears to be an academic or educational document, not a job listing, recruiter message, application, or employment offer."
+            if is_academic_document
+            else "No job listing, recruiting message, application, or employment offer was identified in this material."
+        )
         return ScamAnalysis(
             is_job_related=False,
             risk_level="NOT_APPLICABLE",
             risk_score=0,
-            reasons=[
-                "This appears to be an academic or educational document, not a job listing, recruiter message, application, or employment offer."
-            ],
+            reasons=[scope_reason],
             recommendation=(
                 "No job-scam risk score applies to this material. Submit a job listing, "
                 "recruiter message, application, or offer letter to screen recruitment risks."
