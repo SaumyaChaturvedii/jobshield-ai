@@ -1,50 +1,110 @@
 # JobShield AI
 
-JobShield AI screens job documents, recruiter messages, and public job-listing links for common scam signals. The browser sends scans to a FastAPI service; Gemini analysis and document extraction run on that server.
+JobShield AI screens job offers, recruiter messages, and public job listings for common recruitment-scam signals. It combines a static GitHub Pages frontend with a FastAPI backend that extracts document text and sends scans to Google Gemini for analysis.
+
+## Live app
+
+- **Website:** [saumyachaturvedii.github.io/jobshield-ai](https://saumyachaturvedii.github.io/jobshield-ai/)
+- **API health:** [jobshield-ai-ysp4.onrender.com/health](https://jobshield-ai-ysp4.onrender.com/health)
+- **API documentation:** [jobshield-ai-ysp4.onrender.com/docs](https://jobshield-ai-ysp4.onrender.com/docs)
+
+## Current features
+
+- **Four scan modes:** upload a PDF/image, scan a public job-listing URL, paste a recruiter email/message, or upload an offer letter.
+- **Result-based appearance:** after a scan, the page accent and surfaces shift to green for LOW risk, amber for MEDIUM risk, red for HIGH risk, or a calm neutral palette when the material is not applicable. The manual light/dark control remains available.
+- **Job-scope check:** unrelated documents, such as academic reports or marksheets, can return `NOT_APPLICABLE` with score `0`. That means no job-risk score applies; it does **not** mean a job offer was verified as safe.
+- **Readable results:** findings and a tailored recommendation appear with the score. Four findings use a balanced two-column layout on larger screens and one column on small screens.
+- **Recent scans:** completed results are available from the Recent scans section during the current browser session.
+
+## Use the scanner
+
+1. Open the live website and choose a scan mode.
+2. Upload a relevant document or enter a public URL or recruiter message.
+3. Select the scan button and review the risk level, findings, and recommendation.
+4. Verify any offer through the employer's official website and independently confirmed contact details.
+
+For a safe high-risk smoke test, use fictional content that mentions an upfront fee, a request for identity or bank details, a rushed deadline, or hiring without an interview. For example: “Northstar Vertex Labs offers Taylor Example a remote analyst role. Pay a refundable onboarding fee today and send your ID and bank details by chat to activate the offer.” This is synthetic test text; the exact score and wording can vary between AI scans.
+
+## What the score means
+
+For job-related material, the API returns a risk level and a score from 0 to 100, along with evidence-based findings and a recommended next step. The page uses the returned risk level to set its result theme.
+
+If the material is not about a job or recruitment opportunity, the API returns `is_job_related: false`, `risk_level: "NOT_APPLICABLE"`, and `risk_score: 0`. The interface labels this result “Not a job-related document” and explains that zero is not a safety rating.
+
+AI output is a screening aid, not a definitive fraud determination. It can miss signals or make mistakes; do not rely on a score alone to make decisions.
+
+## Supported inputs and limits
+
+- **Files:** PDF, PNG, and JPEG; maximum 10 MB.
+- **PDFs:** up to 100 pages. Text extraction is capped at 20,000 characters per scan.
+- **Images:** OCR uses Tesseract and requires the Tesseract executable on the API server.
+- **Recruiter messages:** up to 20,000 characters.
+- **Job links:** public HTTP or HTTPS pages only. A page behind a login may not be available.
 
 ## Run locally
 
-1. Install Python 3.11 or later. Install the Tesseract OCR application if you want to scan images. On Windows, the backend detects the standard Tesseract installation path; set `TESSERACT_CMD` if it is installed elsewhere.
-2. Install the Python dependencies from the project root:
+Requirements: Python 3.11 or later. Install Tesseract OCR if you want to scan image files.
+
+1. From the repository root, install the backend dependencies:
 
    ```powershell
    python -m pip install -r Backend/requirements.txt
    ```
 
-3. Copy `.env.example` to `.env` and set `GEMINI_API_KEY` in `.env`. Never commit or share that file.
-4. Start the API and website with `Start Backend.bat`, or run:
+2. Copy `.env.example` to `.env` and set your Gemini key:
 
-   ```powershell
-   python -m uvicorn Backend.main:app --host 127.0.0.1 --port 8000
+   ```text
+   GEMINI_API_KEY=your-key
    ```
 
-5. Open `http://127.0.0.1:8000`. The health endpoint is `/health` and API documentation is at `/docs`. If using Live Server on port 5500, the frontend automatically sends API requests to `http://127.0.0.1:8000`.
+   Keep `.env` private and out of Git. You can optionally set `GEMINI_MODEL`, `CORS_ORIGINS`, or `TESSERACT_CMD`.
 
-The API accepts PDF, PNG, and JPEG files up to 10 MB. PDFs are limited to 100 pages and extracted text is capped at 20,000 characters per scan. Image scans use Tesseract. Text and public-link scans use the `/analyze` and `/scan-link` endpoints.
+3. Start the app with `Start Backend.bat`, or run this from the repository root:
 
-## Deploy the API on Render
+   ```powershell
+   python -m uvicorn Backend.main:app --reload --host 127.0.0.1 --port 8000
+   ```
 
-GitHub Pages serves only static files and cannot run FastAPI. This repository includes a `render.yaml` Blueprint for the separate API service.
+4. Open [http://127.0.0.1:8000](http://127.0.0.1:8000). The API health endpoint is `/health`; interactive API documentation is at `/docs`.
 
-1. In Render, choose **New > Blueprint** and select this repository on the `main` branch.
-2. Review the `jobshield-ai-api` web service. It builds from the root `Dockerfile`, uses `/health` as its health check, and selects Render's free plan.
-3. Enter the real `GEMINI_API_KEY` in Render's private prompt. The Blueprint uses `sync: false`; the key is never stored in GitHub.
-4. Wait for the initial deployment. Open the service's `/health` URL. It reports whether the API process is up, whether a Gemini key is configured, and whether Tesseract OCR is available. This does not verify that Gemini accepts the key; a successful scan does.
-5. Copy the service's public HTTPS origin (for example, `https://your-service.onrender.com`, with no path) into `config.js` and commit that value to `main`. GitHub Pages then redeploys with the actual API address.
+When serving the frontend separately with Live Server on port 5500, the app uses `http://127.0.0.1:8000` for its local API. If Tesseract is installed outside the standard Windows path, set `TESSERACT_CMD` to its executable path.
 
-Until a real API origin is set in `config.js`, the website shows that backend configuration is required and does not send scans to GitHub Pages. Keep the Gemini key in Render only.
+## Deployment
 
-The Dockerfile installs Tesseract and the Python requirements, then starts Uvicorn on `0.0.0.0` using Render's `PORT`. If deploying with Render's native Python runtime instead, use:
+### Frontend: GitHub Pages
 
-- Build command: `pip install -r Backend/requirements.txt`
-- Start command: `uvicorn Backend.main:app --host 0.0.0.0 --port $PORT`
+The site is published from the repository root at [https://saumyachaturvedii.github.io/jobshield-ai/](https://saumyachaturvedii.github.io/jobshield-ai/). Relative asset paths support the `/jobshield-ai/` project URL.
 
-The native runtime needs Tesseract installed separately for image OCR.
+The production API origin is configured in `config.js`:
 
-## Connect GitHub Pages
+```js
+window.JOBSHIELD_API_BASE_URL = 'https://jobshield-ai-ysp4.onrender.com';
+```
 
-The published Pages origin is allowed by the backend's restrictive CORS configuration, as are `http://127.0.0.1:5500` and `http://localhost:5500`. The backend base URL has one configuration location: `config.js`. Do not put the Gemini key in any frontend file.
+Use the API origin only; do not append `/health`, `/scan`, or another path. The frontend never needs the Gemini key.
 
-The Pages site can be published from the repository root. Its asset, stylesheet, and script references are relative so they work under the `/jobshield-ai/` project path.
+### Backend: Render
 
-The analysis is a screening aid, not a definitive fraud determination. Verify offers through the employer's official channels.
+The repository includes a Render Blueprint in `render.yaml` and a root `Dockerfile`.
+
+1. In Render, create a Blueprint from this repository's `main` branch.
+2. Set `GEMINI_API_KEY` as a private environment variable when prompted. Do not put it in `config.js` or commit it to GitHub.
+3. The service uses `/health` for its health check and installs Tesseract for image OCR.
+4. If the API hostname changes, update `config.js` with the new HTTPS origin and commit the change so GitHub Pages can redeploy.
+
+The backend allows the published GitHub Pages origin and local development origins. For a different frontend host, set `CORS_ORIGINS` on the API to a comma-separated list of exact origins.
+
+The `/health` response reports whether the API process is available, a Gemini key is configured, and Tesseract is installed. It does not verify that Gemini will accept the key; a successful scan is needed to confirm that.
+
+## API endpoints
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/health` | API, Gemini-key configuration, and OCR status |
+| `POST` | `/scan` | Analyze an uploaded PDF, PNG, or JPEG file |
+| `POST` | `/analyze` | Analyze pasted recruiter-message text |
+| `POST` | `/scan-link` | Review a public job-listing URL |
+
+## Privacy
+
+Uploaded files and pasted messages are sent to the configured backend and Google Gemini for analysis. Do not submit passwords, one-time passcodes, government ID numbers, or real bank/payment details. Use fictional data when testing.
