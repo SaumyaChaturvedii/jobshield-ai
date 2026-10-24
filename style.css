@@ -1234,3 +1234,29 @@ html[data-result-theme] .summary-item {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Keep dark result cards readable and four findings visually balanced. */
+.main-content.has-results .summary-grid.has-four {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+html[data-theme="dark"][data-result-theme] .summary-item,
+html[data-theme="dark"][data-result-theme] .summary-item:hover {
+  background: linear-gradient(145deg, var(--surface), var(--surface-soft));
+}
+html[data-theme="dark"][data-result-theme] .scan-tab.active {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--accent-soft) 35%, var(--surface)));
+  color: var(--accent);
+}
+html[data-theme="dark"][data-result-theme] .input-row,
+html[data-theme="dark"][data-result-theme] .textarea-input {
+  border-color: var(--border);
+  background: var(--surface-soft);
+  color: var(--text);
+}
+@media (max-width: 780px) {
+  .main-content.has-results .summary-grid.has-four {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
