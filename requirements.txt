@@ -1,9 +1,0 @@
-fastapi
-uvicorn[standard]
-python-multipart
-pydantic
-pypdf
-Pillow
-pytesseract
-google-genai
-python-dotenv

@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: jobshield-ai-api
+    runtime: docker
+    plan: free
+    repo: https://github.com/SaumyaChaturvedii/jobshield-ai
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
