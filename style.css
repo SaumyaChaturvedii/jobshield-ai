@@ -1062,3 +1062,175 @@ body {
   width: 100%;
   justify-self: stretch;
 }
+
+
+/* Let a completed scan tint the workspace to match its risk tone. */
+html[data-theme="light"][data-result-theme="safe"] {
+  --page: #f1f8f4;
+  --accent: #2f7a58;
+  --accent-hover: #255f46;
+  --accent-soft: #e8f4ed;
+  --border: #d5e8db;
+  --border-strong: #bfd9c8;
+  --result-glow: rgb(55 145 93 / 12%);
+}
+html[data-theme="light"][data-result-theme="warning"] {
+  --page: #fbf7ed;
+  --accent: #94651f;
+  --accent-hover: #7a5318;
+  --accent-soft: #fbf1db;
+  --border: #e9ddc6;
+  --border-strong: #ddc893;
+  --result-glow: rgb(205 151 52 / 13%);
+}
+html[data-theme="light"][data-result-theme="danger"] {
+  --page: #fbf1f3;
+  --accent: #a34252;
+  --accent-hover: #823541;
+  --accent-soft: #fae9ec;
+  --border: #edd3d7;
+  --border-strong: #e2bac1;
+  --result-glow: rgb(203 84 104 / 13%);
+}
+html[data-theme="light"][data-result-theme="neutral"] {
+  --page: #f3f5fc;
+  --accent: #5266d5;
+  --accent-hover: #4054c2;
+  --accent-soft: #eef0ff;
+  --border: #e1e7f0;
+  --border-strong: #cbd5e4;
+  --result-glow: rgb(91 115 219 / 10%);
+}
+
+html[data-theme="dark"][data-result-theme="safe"] {
+  --page: #0c1712;
+  --surface: #111d17;
+  --surface-soft: #15251c;
+  --surface-hover: #1c3024;
+  --border: #263f30;
+  --border-strong: #395943;
+  --accent: #88d2a2;
+  --accent-hover: #a5e5b8;
+  --accent-soft: #173323;
+  --result-glow: rgb(48 145 86 / 20%);
+}
+html[data-theme="dark"][data-result-theme="warning"] {
+  --page: #181307;
+  --surface: #201a0f;
+  --surface-soft: #282111;
+  --surface-hover: #342a16;
+  --border: #44371c;
+  --border-strong: #675326;
+  --accent: #f1c77a;
+  --accent-hover: #f6d894;
+  --accent-soft: #332713;
+  --result-glow: rgb(190 139 42 / 20%);
+}
+html[data-theme="dark"][data-result-theme="danger"] {
+  --page: #190e14;
+  --surface: #21141b;
+  --surface-soft: #2a1920;
+  --surface-hover: #38202a;
+  --border: #4a2a35;
+  --border-strong: #683a47;
+  --accent: #ff9ca7;
+  --accent-hover: #ffbec5;
+  --accent-soft: #3a2029;
+  --result-glow: rgb(190 58 86 / 21%);
+}
+html[data-theme="dark"][data-result-theme="neutral"] {
+  --page: #111625;
+  --surface: #151e2f;
+  --surface-soft: #1a2639;
+  --surface-hover: #233249;
+  --border: #293a53;
+  --border-strong: #3c5273;
+  --accent: #aab7ff;
+  --accent-hover: #c4ccff;
+  --accent-soft: #222d50;
+  --result-glow: rgb(78 99 204 / 20%);
+}
+
+html[data-result-theme] body {
+  background:
+    radial-gradient(ellipse at 8% -12%, var(--result-glow), transparent 38rem),
+    radial-gradient(ellipse at 92% 4%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 34rem),
+    var(--page);
+  transition: background 360ms ease, color 300ms ease;
+}
+html[data-result-theme] .top-navbar {
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  transition: border-color 360ms ease;
+}
+html[data-result-theme] .scanner-card,
+html[data-result-theme] .summary-section {
+  border-color: color-mix(in srgb, var(--accent) 17%, var(--border));
+  transition: border-color 360ms ease, box-shadow 360ms ease;
+}
+html[data-result-theme] .brand-mark,
+html[data-result-theme] .avatar,
+html[data-result-theme] .scan-tabs {
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  background-color: color-mix(in srgb, var(--accent-soft) 54%, var(--surface));
+  transition: border-color 360ms ease, background-color 360ms ease, color 360ms ease;
+}
+html[data-result-theme] .avatar,
+html[data-result-theme] .brand-accent {
+  color: var(--accent);
+}
+html[data-result-theme] .scan-tab.active {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  color: var(--accent);
+}
+html[data-result-theme] .upload-box {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-strong));
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%),
+    linear-gradient(145deg, var(--surface), color-mix(in srgb, var(--accent-soft) 44%, var(--surface)));
+  transition: border-color 360ms ease, background 360ms ease, box-shadow 360ms ease, transform var(--duration);
+}
+html[data-result-theme] .upload-icon-circle,
+html[data-result-theme] .finding-number,
+html[data-result-theme] .recommendation-icon {
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 68%, var(--surface));
+  color: var(--accent);
+  transition: border-color 360ms ease, background-color 360ms ease, color 360ms ease;
+}
+html[data-result-theme] .upload-btn-pill,
+html[data-result-theme] .action-btn {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  box-shadow: 0 5px 12px color-mix(in srgb, var(--accent) 20%, transparent);
+  transition: border-color 360ms ease, background 360ms ease, box-shadow 360ms ease, transform var(--duration);
+}
+html[data-result-theme] .ai-recommendation {
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  background:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 75%),
+    linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 80%, var(--surface)), var(--surface));
+  transition: border-color 360ms ease, background 360ms ease;
+}
+html[data-result-theme] .summary-item {
+  border-color: color-mix(in srgb, var(--accent) 12%, var(--border));
+  transition: border-color 360ms ease, background 360ms ease, box-shadow var(--duration), transform var(--duration);
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-result-theme] body,
+  html[data-result-theme] .top-navbar,
+  html[data-result-theme] .scanner-card,
+  html[data-result-theme] .summary-section,
+  html[data-result-theme] .brand-mark,
+  html[data-result-theme] .avatar,
+  html[data-result-theme] .scan-tabs,
+  html[data-result-theme] .upload-box,
+  html[data-result-theme] .upload-icon-circle,
+  html[data-result-theme] .finding-number,
+  html[data-result-theme] .recommendation-icon,
+  html[data-result-theme] .upload-btn-pill,
+  html[data-result-theme] .action-btn,
+  html[data-result-theme] .ai-recommendation,
+  html[data-result-theme] .summary-item {
+    transition-duration: 0.01ms !important;
+  }
+}
