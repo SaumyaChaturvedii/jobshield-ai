@@ -1055,3 +1055,10 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* A single scope explanation should use the full reading width. */
+.main-content.has-results .summary-grid:not(.has-three) .summary-item:last-child:nth-child(odd):only-child {
+  grid-column: 1 / -1;
+  width: 100%;
+  justify-self: stretch;
+}
