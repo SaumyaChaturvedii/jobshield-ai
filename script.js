@@ -236,8 +236,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderSummary(data, file) {
     const analysis = data.analysis;
     const filename = data.filename || file?.name || 'Scan result';
-    const score = Number(analysis.risk_score);
-    const level = String(analysis.risk_level || 'Unknown').toUpperCase();
+    const reportedLevel = String(analysis.risk_level || 'UNKNOWN').toUpperCase();
+    const isJobRelated = analysis.is_job_related !== false && reportedLevel !== 'NOT_APPLICABLE';
+    const score = isJobRelated ? Number(analysis.risk_score) : 0;
+    const level = isJobRelated ? reportedLevel : 'NOT_APPLICABLE';
     const tone = riskTone(level);
     const reasons = Array.isArray(analysis.reasons) ? analysis.reasons : [];
 
@@ -252,14 +254,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (resultHero) {
       resultHero.className = `result-hero ${tone}`;
       resultHero.hidden = false;
+      const description = resultHero.querySelector('.result-description');
+      if (description) {
+        description.textContent = isJobRelated
+          ? 'This job-related material was reviewed for evidence of recruitment scams. See the findings and recommended next step below.'
+          : 'This is not a job-related document, so no job-scam risk score applies. The displayed 0 indicates not applicable, not a safety rating.';
+      }
     }
     if (riskGauge) {
       riskGauge.style.setProperty('--risk-angle', `${boundedScore * 3.6}deg`);
-      riskGauge.setAttribute('aria-label', `Risk score ${scoreText} out of 100. ${level} risk.`);
+      riskGauge.setAttribute(
+        'aria-label',
+        isJobRelated
+          ? `Risk score ${scoreText} out of 100. ${level} risk.`
+          : 'Job risk score not applicable. This material is not about a job or recruitment opportunity.',
+      );
+      const gaugeLabel = riskGauge.querySelector('.gauge-label');
+      if (gaugeLabel) gaugeLabel.textContent = isJobRelated ? 'JOB RISK SCORE' : 'NOT APPLICABLE';
     }
     if (riskScoreValue) riskScoreValue.textContent = scoreText;
     if (resultTitle) {
-      const titles = { LOW: 'Low risk detected', MEDIUM: 'Proceed with care', HIGH: 'High risk detected' };
+      const titles = {
+        LOW: 'Low risk indicators found',
+        MEDIUM: 'Proceed with care',
+        HIGH: 'High risk indicators found',
+        NOT_APPLICABLE: 'Not a job-related document',
+      };
       resultTitle.textContent = titles[level] || 'Review this result';
     }
     if (riskBadge) {
@@ -268,12 +288,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const dot = document.createElement('span');
       dot.className = 'score-dot';
       dot.setAttribute('aria-hidden', 'true');
-      riskBadge.append(dot, document.createTextNode(level === 'UNKNOWN' ? 'RISK LEVEL UNKNOWN' : `${level} RISK`));
+      const badgeText = level === 'NOT_APPLICABLE'
+        ? 'NOT APPLICABLE'
+        : level === 'UNKNOWN' ? 'RISK LEVEL UNKNOWN' : `${level} RISK`;
+      riskBadge.append(dot, document.createTextNode(badgeText));
     }
 
+    if (findingsHeading) {
+      findingsHeading.hidden = false;
+      const heading = findingsHeading.querySelector('h3');
+      const subtitle = findingsHeading.querySelector('span');
+      if (heading) heading.textContent = isJobRelated ? 'Key findings' : 'Document scope';
+      if (subtitle) subtitle.textContent = isJobRelated
+        ? 'Signals identified in this document'
+        : 'Why a job risk score does not apply';
+    }
     if (summaryGrid) {
       summaryGrid.replaceChildren();
-      const visibleReasons = reasons.length ? reasons : ['No specific findings were included in this analysis.'];
+      const visibleReasons = reasons.length
+        ? reasons
+        : [isJobRelated ? 'No specific findings were included in this analysis.' : 'No job-related content was identified.'];
       summaryGrid.classList.toggle('has-three', visibleReasons.length === 3);
       visibleReasons.forEach((reason, index) => {
         const card = document.createElement('article');
@@ -286,7 +320,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const copy = document.createElement('div');
         const title = document.createElement('strong');
-        title.textContent = `Finding ${String(index + 1).padStart(2, '0')}`;
+        title.textContent = isJobRelated
+          ? `Finding ${String(index + 1).padStart(2, '0')}`
+          : 'Scope check';
         const description = document.createElement('small');
         description.textContent = reason;
         copy.append(title, description);
@@ -295,7 +331,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       summaryGrid.hidden = false;
     }
-    if (findingsHeading) findingsHeading.hidden = false;
     if (summaryEmpty) summaryEmpty.hidden = true;
     if (recommendation) recommendation.textContent = analysis.recommendation;
     if (recommendationPanel) recommendationPanel.hidden = false;
@@ -325,7 +360,9 @@ document.addEventListener('DOMContentLoaded', () => {
     scoreWrap.className = 'item-score';
     const scorePill = document.createElement('span');
     scorePill.className = `score-pill ${tone}`;
-    scorePill.textContent = `Risk ${score}/100 · ${level}`;
+    scorePill.textContent = level === 'NOT_APPLICABLE'
+      ? 'Not applicable · displayed score 0'
+      : `Risk ${score}/100 · ${level}`;
     scoreWrap.append(scorePill);
 
     item.append(info, scoreWrap);
