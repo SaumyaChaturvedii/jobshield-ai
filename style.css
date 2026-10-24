@@ -1035,3 +1035,21 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* Keep three findings balanced across one row; avoid a stretched final card. */
+@media (min-width: 781px) {
+  .main-content.has-results .summary-grid.has-three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .main-content.has-results .summary-grid.has-three .summary-item:last-child {
+    grid-column: auto;
+    width: auto;
+    justify-self: stretch;
+  }
+}
+@media (max-width: 780px) {
+  .main-content.has-results .summary-grid.has-three {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
