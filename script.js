@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const uploadFormats = document.querySelector('#upload-formats');
   const summaryFilename = document.querySelector('#summary-filename');
   const summaryEmpty = document.querySelector('#summary-empty');
+  const analysisDisclaimer = document.querySelector('#analysis-disclaimer');
   const resultHero = document.querySelector('#result-hero');
   const riskGauge = document.querySelector('#risk-gauge');
   const riskScoreValue = document.querySelector('#risk-score');
@@ -257,8 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const description = resultHero.querySelector('.result-description');
       if (description) {
         description.textContent = isJobRelated
-          ? 'This job-related material was reviewed for evidence of recruitment scams. See the findings and recommended next step below.'
-          : 'This is not a job-related document, so no job-scam risk score applies. The displayed 0 indicates not applicable, not a safety rating.';
+          ? 'Reviewed for common recruitment scam signals.'
+          : 'No job-scam score applies here. 0 means not applicable, not safe.';
       }
     }
     if (riskGauge) {
@@ -298,10 +299,10 @@ document.addEventListener('DOMContentLoaded', () => {
       findingsHeading.hidden = false;
       const heading = findingsHeading.querySelector('h3');
       const subtitle = findingsHeading.querySelector('span');
-      if (heading) heading.textContent = isJobRelated ? 'Key findings' : 'Document scope';
+      if (heading) heading.textContent = isJobRelated ? 'Key findings' : 'Scope check';
       if (subtitle) subtitle.textContent = isJobRelated
         ? 'Signals identified in this document'
-        : 'Why a job risk score does not apply';
+        : 'Why no score applies';
     }
     if (summaryGrid) {
       summaryGrid.replaceChildren();
@@ -332,8 +333,17 @@ document.addEventListener('DOMContentLoaded', () => {
       summaryGrid.hidden = false;
     }
     if (summaryEmpty) summaryEmpty.hidden = true;
+    if (analysisDisclaimer) {
+      analysisDisclaimer.hidden = !isJobRelated;
+    }
     if (recommendation) recommendation.textContent = analysis.recommendation;
-    if (recommendationPanel) recommendationPanel.hidden = false;
+    if (recommendationPanel) {
+      recommendationPanel.hidden = false;
+      const heading = recommendationPanel.querySelector('.recommendation-heading strong');
+      const tag = recommendationPanel.querySelector('.recommendation-tag');
+      if (heading) heading.textContent = isJobRelated ? 'AI recommendation' : 'Next step';
+      if (tag) tag.textContent = isJobRelated ? 'NEXT STEP' : 'ACTION';
+    }
 
     addRecentScan(filename, score, level, tone);
   }
@@ -361,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const scorePill = document.createElement('span');
     scorePill.className = `score-pill ${tone}`;
     scorePill.textContent = level === 'NOT_APPLICABLE'
-      ? 'Not applicable · displayed score 0'
+      ? 'Not applicable · 0 shown'
       : `Risk ${score}/100 · ${level}`;
     scoreWrap.append(scorePill);
 
